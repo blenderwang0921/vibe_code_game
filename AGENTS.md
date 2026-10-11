@@ -13,7 +13,7 @@ This is an offline 3D RPG prototype using Godot 4 standard edition, GDScript, an
 
 ## Build, Test, and Development Commands
 
-The README records validation with Godot 4.7.2. Use `GODOT_BIN=/path/to/godot` to select an installed engine; macOS setup is `python3 tools/install_godot.py`.
+The README records validation with Godot 4.7.2. Use `GODOT_BIN=/path/to/godot` to select an installed engine; macOS and Linux x86_64 setup is `python3 tools/install_godot.py`. Optional Blender setup is `python3 tools/install_blender.py`; use `./tools/blender.sh --background --python path/to/script.py` or override `BLENDER_BIN`.
 
 - `./run.sh`: import resources and launch the game.
 - `./tools/godot.sh --editor`: open the project in Godot.
@@ -23,6 +23,8 @@ The README records validation with Godot 4.7.2. Use `GODOT_BIN=/path/to/godot` t
 - `./benchmark.sh` or `./benchmark.sh --low`: measure real-time performance with normal or reduced effects.
 
 There is no standalone application build/export workflow yet.
+
+On this macOS host, Blender 4.5.3 can crash during Metal device detection inside the Codex filesystem sandbox, even with `--background` and CPU rendering. Run Blender background work with the tool's approved unsandboxed execution mode; do not repeat the known failing sandboxed launch. Validate with `./tools/blender.sh --background --python-exit-code 1 --python tests/blender_smoke.py`. This is a local environment observation, not a Linux requirement.
 
 ## Coding Style & Naming Conventions
 

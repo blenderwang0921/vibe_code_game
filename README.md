@@ -16,14 +16,38 @@ Godot 4 標準版、GDScript、Compatibility renderer 的單機 3D 小型 RPG。
 ./tools/godot.sh --editor
 ```
 
-其他電腦複製專案時不需帶 `.tools` 和 `.godot`。macOS 可重新取得相同版本：
+其他電腦複製專案時不需帶 `.tools` 和 `.godot`。macOS 或 Linux x86_64 可重新取得相同版本（需要 Python 3.10+、網路連線）：
 
 ```sh
 python3 tools/install_godot.py
 ./run.sh
 ```
 
-下載器會先顯示官方檔案大小，核對 SHA256，確認解壓容量，並刪除下載暫存。只下載標準版引擎。其他平台請自行安裝 Godot 4 標準版；可用 `GODOT_BIN=/完整路徑/godot ./run.sh` 指定引擎。已驗證的版本是 4.7.2。
+下載器會自動選擇 macOS universal 或 Linux x86_64（64 位元 x86，非 32 位元）官方標準版，顯示檔案大小、核對 SHA256、確認解壓容量並刪除下載暫存。macOS 安裝在 `.tools/Godot.app`，Linux 在 `.tools/godot`，啟動器會自動選用。其他平台請自行安裝 Godot 4 標準版；可用 `GODOT_BIN=/完整路徑/godot ./run.sh` 指定引擎。已驗證的版本是 4.7.2。
+
+Linux 無桌面環境可執行 `./verify.sh` 做 headless 驗證；遊戲視窗與截圖仍需要圖形環境和 OpenGL 驅動。繁體中文需安裝 Noto Sans CJK TC 等字型。安裝器不會安裝系統套件，Linux 執行檔也仍需系統提供相容的函式庫。
+
+## Blender（選用）
+
+目前遊戲不需要 Blender；製作模型時可安裝固定版本 **Blender 4.5.3 LTS**：
+
+```sh
+python3 tools/install_blender.py
+./tools/blender.sh --background --version
+./tools/blender.sh --background --python-exit-code 1 --python tests/blender_smoke.py
+# 之後執行自己的建模腳本：
+# ./tools/blender.sh --background --python path/to/build_models.py
+```
+
+`blender_smoke.py` 會建立測試模型、匯出 GLB 並使用 Cycles CPU 渲染 256×256 PNG，成果在 `artifacts/blender-smoke/`。已在 macOS Apple Silicon 實測 Blender 4.5.3 安裝與此背景流程；Linux 尚待實機驗證。
+
+在目前這台 Mac 的 Codex 沙箱內，Blender 曾於啟動時的 Metal 裝置偵測崩潰，並觸發 macOS「未依預期結束」提示；即使背景模式與 CPU 渲染也會經過此初始化。相同測試在允許沙箱外執行後成功。透過 Codex 執行時應使用核准的沙箱外執行模式；一般終端機可直接使用上述指令，不需要修改系統安全設定。
+
+支援 macOS Apple Silicon／Intel 與 Linux x86_64。Linux 安全解壓建議使用 Python 3.12+（需有 `tarfile.data_filter`）；macOS 使用系統的 `hdiutil` 與 `ditto`。只下載目前平台的官方發行包，依官方 `.sha256` 清單驗證，暫存下載與解壓完成後會清除。安裝前要求約 **3.6 GiB 可用空間**，這是容量預算，模型、貼圖和渲染成果另計。
+
+程式保存在 `.tools/blender/`，不需管理員權限，也不會進入 Git。可用 `BLENDER_BIN=/完整路徑/blender ./tools/blender.sh --background --version` 指定既有安裝；找不到專案內程式時也會搜尋 PATH。已存在的安裝會檢查能否執行並保留，不會自動升級或覆寫。Linux 若提示缺少共享函式庫，須先在主機或 Cloud 環境補齊依賴；此腳本不配置 GPU 或虛擬顯示器。
+
+發布到 GitHub 時只需提交安裝腳本；`.tools/`、`.godot/`、`artifacts/` 已列入 `.gitignore`。新的開發環境需重新執行安裝步驟。
 
 ## 操作與流程
 
@@ -61,6 +85,7 @@ python3 tools/install_godot.py
 
 ```sh
 ./verify.sh
+python3 -m unittest discover -s tests -p 'test_installers.py'
 ./tools/godot.sh --script res://tests/visual_runner.gd
 ./tools/godot.sh --script res://tests/playthrough.gd
 ./benchmark.sh
