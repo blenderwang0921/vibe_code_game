@@ -59,6 +59,7 @@ func _run() -> void:
 		quit(1)
 		return
 	await frames(5)
+	_test_player_model()
 	await _test_movement()
 	await _test_cursor_aim()
 	await _test_fire_collision()
@@ -116,6 +117,28 @@ func _test_spells() -> void:
 	check(is_equal_approx(book.fire_damage(), settings.fire_damage * settings.fire_upgrade_multiplier), "fire upgrade applies once without stacking")
 	book.apply_reward(&"frost")
 	check(is_equal_approx(book.frost_radius(), settings.frost_radius * settings.frost_upgrade_multiplier), "frost upgrade changes actual area radius")
+
+func _test_player_model() -> void:
+	var visual: ActorVisual = world.player.visual
+	var model := visual.rig.get_node_or_null("Model") as Node3D
+	check(model != null, "player uses the imported character scene")
+	if not model:
+		return
+	check(model.scene_file_path == "res://assets/models/characters/b_grove/character.glb", "selected B Grove character is the gameplay model")
+	check((model.basis * Vector3.BACK).is_equal_approx(Vector3.FORWARD), "imported model faces the gameplay forward direction")
+	var skeletons := model.find_children("*", "Skeleton3D", true, false)
+	check(skeletons.size() == 1 and skeletons[0].get_bone_count() == 18, "player retains one shared 18-bone skeleton")
+	check(visual.parts.size() == 6, "body and three equipment slots remain separate meshes")
+	var rest_transform := visual.rig.transform
+	visual.moving = true
+	visual.cast()
+	visual.flash()
+	visual._process(0.05)
+	check(visual.parts.all(func(part: MeshInstance3D) -> bool: return part.material_overlay == visual.flash_material), "damage flash reaches every imported mesh")
+	check(visual.rig.transform.is_equal_approx(rest_transform), "imported model keeps its authored pose without procedural animation")
+	visual._process(0.3)
+	check(visual.cast_left == 0.0 and visual.parts.all(func(part: MeshInstance3D) -> bool: return part.material_overlay == null), "cast timing and damage flash recover on imported model")
+	visual.moving = false
 
 func _test_movement() -> void:
 	teleport_player(Vector3(-3, 0, -3))

@@ -2,6 +2,7 @@ class_name ActorVisual
 extends Node3D
 
 @export_enum("wizard", "enemy", "elder") var kind: String = "wizard"
+@export var model_scene: PackedScene
 var moving: bool = false
 var cast_left: float = 0.0
 var flash_left: float = 0.0
@@ -13,12 +14,13 @@ var parts: Array[MeshInstance3D] = []
 var flash_material: StandardMaterial3D
 
 func _ready() -> void:
-	rig = Node3D.new()
+	rig = model_scene.instantiate() as Node3D if model_scene else Node3D.new()
 	add_child(rig)
-	if kind == "enemy":
-		_build_enemy()
-	else:
-		_build_person()
+	if not model_scene:
+		if kind == "enemy":
+			_build_enemy()
+		else:
+			_build_person()
 	_collect_parts(rig)
 	flash_material = LowPoly.material(Color(1.0, 0.86, 0.68, 0.7), true)
 
@@ -81,6 +83,13 @@ func _process(delta: float) -> void:
 	phase += delta * (10.0 if moving else 2.2)
 	cast_left = maxf(0.0, cast_left - delta)
 	flash_left = maxf(0.0, flash_left - delta)
+	# Imported characters keep their authored rest pose until animations are added.
+	if not model_scene:
+		_animate_procedural()
+	for part in parts:
+		part.material_overlay = flash_material if flash_left > 0.0 else null
+
+func _animate_procedural() -> void:
 	rig.position.y = sin(phase) * (0.065 if moving else 0.018)
 	rig.rotation.z = sin(phase * 0.5) * (0.055 if moving else 0.012)
 	for i in feet.size():
@@ -91,6 +100,4 @@ func _process(delta: float) -> void:
 		rig.rotation.x = sin(cast_left / 0.3 * PI) * 0.2
 	else:
 		rig.rotation.x = 0.0
-	for part in parts:
-		part.material_overlay = flash_material if flash_left > 0.0 else null
 

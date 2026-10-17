@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 [ext_resource type="Script" path="res://scripts/player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/actor_visual.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/health.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/wizard_visual.tscn" id="4_visual"]
 [sub_resource type="CapsuleShape3D" id="BodyShape"]
 radius = 0.32
 height = 1.4
@@ -14,6 +15,7 @@ position = Vector3(0, 0.7, 0)
 shape = SubResource("BodyShape")
 [node name="Visual" type="Node3D" parent="."]
 script = ExtResource("2")
+model_scene = ExtResource("4_visual")
 [node name="Health" type="Node" parent="."]
 script = ExtResource("3")
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
